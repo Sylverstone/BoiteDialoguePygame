@@ -5,9 +5,23 @@ from font_import import *
 from Sylver_fonction_usuelle import *
 
 class BoiteDialogPygame:
+    """
+    # BoiteDialogPygame 
+        la class permet d'afficher différente boîte de dialogues tel que des oui non, des oui non annuler
+        ou bien encore de simple message. Vous pouvez personnalisé les dimensions de la boîte de dialogues, son apparence (contour)
+        avec également d'autre option comme son titre de base ainsi que un arrière plan transparent blanc a son affichage
+
+    ## Args:
+        * w (int, optional): longueur de la Boite de dialogue. Defaults to 400.
+        * h (int, optional): hauteur de la boite de dialogue. Defaults to 200.
+        * screen (pygame.Surface, optional): surface sur laquelle est dessiné la boîte de dialogue (conseillez de mettre votre écran). Defaults to None.
+        * contour (int, optional): epaisseur du contour de la boîte de dialogue. Defaults to 0.
+        * filtre_blanc (bool, optional): Si True, un arrière plan semi-transparent sera présent à l'affichage des boîtes de dialogues. Defaults to False.
+        * base_title (str, optional): Titre de base des boîtes de dialogues, il est personnalisable pour les différentes boites de dialogues, si vous ne le changez pas, base_title sera considéré par défaut comme titre de la boite dialogue. Defaults to "Information".
+        * echap_destroy_windows (bool,optional): Si True, a l'appuie de la touche echap, peut-importe la fenêtre, elle se fermera (renvoie None forcément)
+    """
     
-    def __init__(self,w : int = 400 ,h : int = 200 ,screen : pygame.Surface = None,
-                 contour = 0, filtre_blanc = False,base_title = "Information"):
+    def __init__(self,w : int = 400 ,h : int = 200 ,screen : pygame.Surface = None,contour = 0, filtre_blanc = False,base_title = "Information",echap_destroy_windows = False):
         self.longueur = w
         self.largeur = h
         self.longueur_btn = w/5
@@ -22,8 +36,19 @@ class BoiteDialogPygame:
         self.contour = contour
         self.filtre_blanc = filtre_blanc
         self.base_title = base_title
+        self.echap_destroy_windows = echap_destroy_windows
         
-    def basic_setup(self,surface,dernier_ecran,x_surface,y_surface,barre_noir):
+    def basic_setup(self,surface : pygame.Surface,dernier_ecran : pygame.Surface,x_surface :int,y_surface : int,barre_noir : pygame.Surface) -> None:
+        """
+        Fonction permettant d'afficher l'esthétique de la boite de dialogue ainsi que son fond
+
+        ## Args:
+            * surface (pygame.Surface): surface de la boite de dialogue
+            * dernier_ecran (pygame.Surface): fond de la boite de dialogue
+            * x_surface (int): position x de la boite de dialogue
+            * y_surface (int): position y de la boite de dialogue
+            * barre_noir (pygame.Surface): surface de la barre noir de la boite de dialogue
+        """
         self.screen.blit(dernier_ecran,(0,0))
         if self.filtre_blanc != False:
                 surface_blanc_transparent = pygame.Surface((self.screen.get_width(), self.screen.get_height()),pygame.SRCALPHA)
@@ -44,13 +69,33 @@ class BoiteDialogPygame:
         surface.blit(barre_noir,(0,0))
         
     @staticmethod
-    def affichage_text_et_titre_fenetre(surface : pygame.Surface,title : str,longueur_surface : int,taille_text : int,text : str ,position_text : int,largeur_surface : int,hauteur_text : int):
+    def affichage_text_et_titre_fenetre(surface : pygame.Surface,title : str,longueur_surface : int,taille_text : int,text : str ,position_text : int,largeur_surface : int,hauteur_text : int) -> None:
+        """Fonction permettant d'afficher le contenu texte de la boite de dialogue ainsi que son texte
+
+        ## Args:
+            * surface (pygame.Surface): Surface de la boite de dialogue
+            * title (str): titre de la boite de dialogue
+            * longueur_surface (int): longueur de la boite de dialogue
+            * taille_text (int): taille du contenu (texte) de la boite de dialogue
+            * text (str): contenu (texte) de la boite de dialogue
+            * position_text (int): position x du contenu (texte) de la boite de dialogue 
+            * largeur_surface (int): largeur de la boite de dialogue
+            * hauteur_text (int): hauteur du contenu (texte) de la boite de dialogue 
+        """
         draw_text_(contener=surface,text = title,x = longueur_surface/2 - font('Arial',15,False).size(title)[0]/2,
                       y = 5, color = (255,255,255), font="Arial")
         draw_text_(contener=surface,text = text,x = position_text,
                     y = largeur_surface/2 - hauteur_text/2, font = "Arial",size = taille_text,color=(255,)*3,center_multi_line=True)
         
-    def affiche_case(self,all_rect,mouse,bord_case,texts):
+    def affiche_case(self,all_rect : list,mouse : tuple,bord_case : list,texts : list) -> None:
+        """Fonction permettant d'afficher les btn de la boite de dialogue
+
+        ## Args:
+            * all_rect (list): tous les rects des boutons de la boite de dialogue
+            * mouse (tuple): coordonné de la souris (x,y)
+            * bord_case (list): listes contenu les couleurs des bords des boutons
+            * texts (list): listes contenant les textes affichés sur les bouton
+        """
         i = 0
         for rect in all_rect:
             if rect.collidepoint(mouse):
@@ -59,18 +104,18 @@ class BoiteDialogPygame:
                 bord_case[i] = palette_couleur().Noir_clair
             pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect,0,35)
             pygame.draw.rect(self.screen,bord_case[i],rect,1,35)
-            draw_text_(contener= self.screen,text = texts[i], x = rect.x + rect.w/2 - font(TNN,20,True).size(texts[i])[0]/2, 
-                    y = rect.y + rect.h/2 - font(TNN,20,True).size(texts[i])[1]/2, color=(255,)*3,
-                    font = TNN, importer= True,size = 20)
+            draw_text_(contener= self.screen,text = texts[i], x = rect.x + rect.w/2 - font(TNN,17,True).size(texts[i])[0]/2, 
+                    y = rect.y + rect.h/2 - font(TNN,17,True).size(texts[i])[1]/2, color=(255,)*3,
+                    font = TNN, importer= True,size = 17)
             i+=1
             
-    def ask_yes_no(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool:
+    def ask_yes_no(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool | None:
         """Boite de dialogue permettant de posez une question fermer. Renvoie True pour oui, False pour non
 
         Args:
-            text (str): texte à afficher
-            dernier_ecran (pygame.Surface): fond de la boite de dialogue 
-            color_text (tuple, optional): couleur du texte. Defaults to (0,0,0).
+            * text (str): texte à afficher
+            * dernier_ecran (pygame.Surface): fond de la boite de dialogue 
+            * color_text (tuple, optional): couleur du texte. Defaults to (0,0,0).
 
         Returns:
             bool: Reponse de l'utilisateur
@@ -111,8 +156,9 @@ class BoiteDialogPygame:
                     return True                
                 elif rect_btn_non.collidepoint(mouse) and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     return False
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return None
+                if self.echap_destroy_windows:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        return None
             #affichage
             BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_interrogation,(20,10))
@@ -120,13 +166,13 @@ class BoiteDialogPygame:
             self.affiche_case(all_rect,mouse,bord_case,texts)
             pygame.display.update()
     
-    def ask_yes_no_cancel(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool:
+    def ask_yes_no_cancel(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool | None:
         """Boite de dialogue permettant de poser une question fermé, Renvoie True pour oui, False pour non, None pour annuler
 
         Args:
-            text (str): texte à afficher sur la FileDialog
-            dernier_ecran (pygame.Surface): fond de la boite de dialogue
-            color_text (tuple, optional): couleur du texte. Defaults to (0,0,0).
+            * text (str): texte à afficher sur la FileDialog
+            * dernier_ecran (pygame.Surface): fond de la boite de dialogue
+            * color_text (tuple, optional): couleur du texte. Defaults to (0,0,0).
 
         Returns:
             bool: Reponse de l'utilisateur
@@ -171,8 +217,9 @@ class BoiteDialogPygame:
                     return False
                 elif rect_btn_annuler.collidepoint(mouse) and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     return None
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    return None
+                if self.echap_destroy_windows:
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        return None
             #affichage
             BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_interrogation,(20,10))
@@ -184,8 +231,8 @@ class BoiteDialogPygame:
         """Fonction permettant d'afficher un message a l'écran, ne renvoie rien
 
         Args:
-            text (str): texte a afficher
-            dernier_ecran (pygame.Surface): fond de la boite de dialogue
+            * text (str): texte a afficher
+            * dernier_ecran (pygame.Surface): fond de la boite de dialogue
         """
         if title == "":
             title = self.base_title
@@ -229,9 +276,10 @@ class BoiteDialogPygame:
             for event in pygame.event.get():
                 if rect_btn_ok.collidepoint(mouse) and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     affiche = False        
-                
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    affiche = False
+                if self.echap_destroy_windows:
+
+                    if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                        affiche = False
             #affichage
             BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_exclamation,(20,10))
@@ -255,7 +303,7 @@ if __name__ == "__main__":
     screen.fill((106,110,255))
     draw_text_("Voici une demonstration des filedialog de SylverFiledialog",contener=screen,color=(255,255,255),center_multi_line=True)
     last_screen = screen.copy()
-    dialog = BoiteDialogPygame(400,200,screen,1,True)
+    dialog = BoiteDialogPygame(400,200,screen,1,True,echap_destroy_windows=True)
     rep = dialog.ask_yes_no("Boîte de dialogue pour oui ou non\nVous pouvez écrire sur plusieurs lignes en utilisant des '\\n'.",last_screen)
     rep = dialog.message("Boîte de dialogue permettant d'afficher un message, une information, ce que vous voulez :)", last_screen)
     rep = dialog.ask_yes_no_cancel("Boîte de dialogue pour oui, non ou annuler\nVous pouvez écrire sur plusieurs lignes en utilisant des '\\n'.",last_screen)
