@@ -7,7 +7,7 @@ from Sylver_fonction_usuelle import *
 class BoiteDialogPygame:
     
     def __init__(self,w : int = 400 ,h : int = 200 ,screen : pygame.Surface = None,
-                 contour = 0, filtre_blanc = False):
+                 contour = 0, filtre_blanc = False,base_title = "Information"):
         self.longueur = w
         self.largeur = h
         self.longueur_btn = w/5
@@ -21,8 +21,50 @@ class BoiteDialogPygame:
             ,(25,25))
         self.contour = contour
         self.filtre_blanc = filtre_blanc
+        self.base_title = base_title
         
-    def ask_yes_no(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0)) -> bool:
+    def basic_setup(self,surface,dernier_ecran,x_surface,y_surface,barre_noir):
+        self.screen.blit(dernier_ecran,(0,0))
+        if self.filtre_blanc != False:
+                surface_blanc_transparent = pygame.Surface((self.screen.get_width(), self.screen.get_height()),pygame.SRCALPHA)
+                surface_blanc_transparent.fill((255,255,255,90))
+                self.screen.blit(surface_blanc_transparent,(0,0))
+                print("blit")
+        #creation de l'ombre arriere
+        surface.fill((0,0,0,0))
+        pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),0,35)
+        self.screen.blit(surface,(x_surface + 5, y_surface+5))
+        #creation logique fenetre
+        surface.fill((0,0,0,0))
+        pygame.draw.rect(surface,palette_couleur().Gris_clair,surface.get_rect(),0,35)
+        if self.contour != 0:
+            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),self.contour,35)
+        barre_noir.fill((0,0,0,0))
+        pygame.draw.rect(barre_noir,palette_couleur().Noir,barre_noir.get_rect(),0,0,35,35,0,0)
+        surface.blit(barre_noir,(0,0))
+        
+    @staticmethod
+    def affichage_text_et_titre_fenetre(surface : pygame.Surface,title : str,longueur_surface : int,taille_text : int,text : str ,position_text : int,largeur_surface : int,hauteur_text : int):
+        draw_text_(contener=surface,text = title,x = longueur_surface/2 - font('Arial',15,False).size(title)[0]/2,
+                      y = 5, color = (255,255,255), font="Arial")
+        draw_text_(contener=surface,text = text,x = position_text,
+                    y = largeur_surface/2 - hauteur_text/2, font = "Arial",size = taille_text,color=(255,)*3,center_multi_line=True)
+        
+    def affiche_case(self,all_rect,mouse,bord_case,texts):
+        i = 0
+        for rect in all_rect:
+            if rect.collidepoint(mouse):
+                bord_case[i] = (255,)*3
+            else:                
+                bord_case[i] = palette_couleur().Noir_clair
+            pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect,0,35)
+            pygame.draw.rect(self.screen,bord_case[i],rect,1,35)
+            draw_text_(contener= self.screen,text = texts[i], x = rect.x + rect.w/2 - font(TNN,20,True).size(texts[i])[0]/2, 
+                    y = rect.y + rect.h/2 - font(TNN,20,True).size(texts[i])[1]/2, color=(255,)*3,
+                    font = TNN, importer= True,size = 20)
+            i+=1
+            
+    def ask_yes_no(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool:
         """Boite de dialogue permettant de posez une question fermer. Renvoie True pour oui, False pour non
 
         Args:
@@ -33,11 +75,10 @@ class BoiteDialogPygame:
         Returns:
             bool: Reponse de l'utilisateur
         """
-        self.screen.blit(dernier_ecran,(0,0))
-        if self.filtre_blanc != False:
-            surface_blanc_transparent = pygame.Surface((self.screen.get_width(), self.screen.get_height()),pygame.SRCALPHA)
-            surface_blanc_transparent.fill((255,255,255,100))
-            self.screen.blit(surface_blanc_transparent,(0,0))
+        
+        print(self.filtre_blanc)
+        if title == "":
+            title = self.base_title
         surface = pygame.Surface((self.longueur,self.largeur),pygame.SRCALPHA)
         longueur_surface, largeur_surface = surface.get_size()
         x_surface = self.screen.get_rect().w/2 - surface.get_width()/2
@@ -46,6 +87,8 @@ class BoiteDialogPygame:
         longueur_btn,largeur_btn = surface_case.get_size()
         rect_btn_oui = pygame.Rect(x_surface + longueur_surface/2 - longueur_btn - 20, y_surface + largeur_surface - largeur_btn - 10,*surface_case.get_size())
         rect_btn_non = pygame.Rect(x_surface + longueur_surface/2 + 20, y_surface + largeur_surface - largeur_btn - 10,*surface_case.get_size())
+        all_rect = [rect_btn_oui,rect_btn_non]
+        texts = ["OUI","NON"]
         taille_text = 25
         text, ligne,hauteur_text = make_line_n(text,font("Arial",25,False),surface.get_width() - 40 )
         while hauteur_text >  rect_btn_non.top - y_surface - largeur_btn:
@@ -60,18 +103,7 @@ class BoiteDialogPygame:
         reponse_user = None
         barre_noir = pygame.Surface((longueur_surface,40),pygame.SRCALPHA)
         while affiche:
-            #creation de l'ombre arriere
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),0,35)
-            self.screen.blit(surface,(x_surface + 5, y_surface+5))
-            #creation logique fenetre
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Gris_clair,surface.get_rect(),0,35)
-            if self.contour != 0:
-                pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),self.contour,35)
-            barre_noir.fill((0,0,0,0))
-            pygame.draw.rect(barre_noir,palette_couleur().Noir,barre_noir.get_rect(),0,0,35,35,0,0)
-            surface.blit(barre_noir,(0,0))
+            self.basic_setup(surface,dernier_ecran,x_surface,y_surface,barre_noir)
             mouse = pygame.mouse.get_pos()
             #evenement
             for event in pygame.event.get():
@@ -82,33 +114,13 @@ class BoiteDialogPygame:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     return None
             #affichage
-            draw_text_(contener=surface,text = "SylverService",x = longueur_surface/2 - font('Arial',15,False).size("Sylver_service")[0]/2,
-                      y = 5, color = (255,255,255), font="Arial")
-            draw_text_(contener=surface,text = text,x = position_text,
-                      y = largeur_surface/2 - hauteur_text/2, font = "Arial",size = taille_text,color=(255,)*3,center_multi_line=True)
+            BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_interrogation,(20,10))
             self.screen.blit(surface,(x_surface, y_surface))            
-            if rect_btn_oui.collidepoint(mouse):
-                bord_case[0] = (255,)*3
-            else:                
-                bord_case[0] = palette_couleur().Noir_clair
-            if rect_btn_non.collidepoint(mouse):
-                bord_case[1] = (255,)*3
-            else:                
-                bord_case[1] = palette_couleur().Noir_clair                
-            pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect_btn_oui,0,35)
-            pygame.draw.rect(self.screen,bord_case[0],rect_btn_oui,1,35)
-            pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect_btn_non,0,35)
-            pygame.draw.rect(self.screen,bord_case[1],rect_btn_non,1,35)
-            draw_text_(contener= self.screen,text = "OUI", x = rect_btn_oui.x + rect_btn_oui.w/2 - font(TNN,20,True).size("OUI")[0]/2, 
-                      y = rect_btn_oui.y + rect_btn_oui.h/2 - font(TNN,20,True).size("OUI")[1]/2, color=(255,)*3,
-                      font = TNN, importer= True,size = 20)
-            draw_text_(contener= self.screen,text = "NON", x = rect_btn_non.x + rect_btn_non.w/2 - font(TNN,20,True).size("NON")[0]/2, 
-                      y = rect_btn_non.y + rect_btn_non.h/2 - font(TNN,20,True).size("NON")[1]/2, color=(255,)*3,
-                      font = TNN, importer= True,size = 20)
-            pygame.display.update(pygame.Rect(x_surface,y_surface,*surface.get_width()))
+            self.affiche_case(all_rect,mouse,bord_case,texts)
+            pygame.display.update()
     
-    def ask_yes_no_cancel(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0)) -> bool:
+    def ask_yes_no_cancel(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0),title = "") -> bool:
         """Boite de dialogue permettant de poser une question fermé, Renvoie True pour oui, False pour non, None pour annuler
 
         Args:
@@ -119,6 +131,8 @@ class BoiteDialogPygame:
         Returns:
             bool: Reponse de l'utilisateur
         """
+        if title == "":
+            title = self.base_title
         self.screen.blit(dernier_ecran,(0,0))
         surface = pygame.Surface((self.longueur,self.largeur),pygame.SRCALPHA)
         longueur_surface, largeur_surface = surface.get_size()
@@ -147,17 +161,7 @@ class BoiteDialogPygame:
         barre_noir = pygame.Surface((longueur_surface,40),pygame.SRCALPHA)
         while affiche:
             #creation de l'ombre arriere
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),0,35)
-            self.screen.blit(surface,(x_surface + 5, y_surface+5))
-            #creation logique fenetre
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Gris_clair,surface.get_rect(),0,35)
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),1,35)
-
-            barre_noir.fill((0,0,0,0))
-            pygame.draw.rect(barre_noir,palette_couleur().Noir,barre_noir.get_rect(),0,0,35,35,0,0)
-            surface.blit(barre_noir,(0,0))
+            self.basic_setup(surface,dernier_ecran,x_surface,y_surface,barre_noir)
             mouse = pygame.mouse.get_pos()
             #evenement
             for event in pygame.event.get():
@@ -170,34 +174,21 @@ class BoiteDialogPygame:
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     return None
             #affichage
-            draw_text_(contener=surface,text = "SylverService",x = longueur_surface/2 - font('Arial',15,False).size("Sylver_service")[0]/2,
-                      y = 5, color = (255,255,255), font="Arial")
-            draw_text_(contener=surface,text = text,x = position_text,
-                      y = largeur_surface/2 - hauteur_text/2, font = "Arial",size = taille_text,color=(255,)*3,center_multi_line=True)
+            BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_interrogation,(20,10))
             self.screen.blit(surface,(x_surface, y_surface))
-            i = 0
-            for rect in all_rect:
-                if rect.collidepoint(mouse):
-                    bord_case[i] = (255,)*3
-                else:                
-                    bord_case[i] = palette_couleur().Noir_clair
-                pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect,0,35)
-                pygame.draw.rect(self.screen,bord_case[i],rect,1,35)
-                draw_text_(contener= self.screen,text = texts[i], x = rect.x + rect.w/2 - font(TNN,sizes[i],True).size(texts[i])[0]/2, 
-                      y = rect.y + rect.h/2 - font(TNN,sizes[i],True).size(texts[i])[1]/2, color=(255,)*3,
-                      font = TNN, importer= True,size = sizes[i])
-                i+=1          
-
+            self.affiche_case(all_rect,mouse,bord_case,texts)       
             pygame.display.update()
             
-    def message(self,text : str,dernier_ecran : pygame.Surface) -> None:
+    def message(self,text : str,dernier_ecran : pygame.Surface,title = "") -> None:
         """Fonction permettant d'afficher un message a l'écran, ne renvoie rien
 
         Args:
             text (str): texte a afficher
             dernier_ecran (pygame.Surface): fond de la boite de dialogue
         """
+        if title == "":
+            title = self.base_title
         self.screen.blit(dernier_ecran,(0,0))
         surface = pygame.Surface((self.longueur,self.largeur),pygame.SRCALPHA)
         longueur_surface, largeur_surface = surface.get_size()
@@ -212,7 +203,6 @@ class BoiteDialogPygame:
         text, ligne,hauteur_text = make_line_n(text_origine,font("Arial",25,False),surface.get_width() - 40 )
         taille_surface_max = 700
         while hauteur_text >  rect_btn_ok.top - y_surface - largeur_btn:
-            print(hauteur_text)
             taille_text -= 0.1
             taille_surface += 5
             if taille_surface > taille_surface_max:
@@ -233,38 +223,23 @@ class BoiteDialogPygame:
         barre_noir = pygame.Surface((longueur_surface,40),pygame.SRCALPHA)
         while affiche:
             #creation de l'ombre arriere
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),0,35)
-            self.screen.blit(surface,(x_surface + 5, y_surface+5))
-            #creation logique fenetre
-            surface.fill((0,0,0,0))
-            pygame.draw.rect(surface,palette_couleur().Gris_clair,surface.get_rect(),0,35)
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),1,35)
-
-            barre_noir.fill((0,0,0,0))
-            pygame.draw.rect(barre_noir,palette_couleur().Noir,barre_noir.get_rect(),0,0,35,35,0,0)
-            surface.blit(barre_noir,(0,0))
+            self.basic_setup(surface,dernier_ecran,x_surface,y_surface,barre_noir)
             mouse = pygame.mouse.get_pos()
             #evenement
             for event in pygame.event.get():
                 if rect_btn_ok.collidepoint(mouse) and event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
-                    affiche = False          
+                    affiche = False        
                 
                 if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     affiche = False
             #affichage
-            draw_text_(contener=surface,text = "SylverService",x = longueur_surface/2 - font('Arial',15,False).size("Sylver_service")[0]/2,
-                      y = 5, color = (255,255,255), font="Arial")
-            draw_text_(contener=surface,text = text,x = position_text,
-                      y = largeur_surface/2 - hauteur_text/2, font = "Arial",size = taille_text,color=(255,)*3,center_multi_line=True)
+            BoiteDialogPygame.affichage_text_et_titre_fenetre(surface,title,longueur_surface,taille_text,text,position_text,largeur_surface,hauteur_text)
             surface.blit(self.icone_exclamation,(20,10))
-            self.screen.blit(surface,(x_surface, y_surface))
-            
+            self.screen.blit(surface,(x_surface, y_surface))            
             if rect_btn_ok.collidepoint(mouse):
                 bord_case[0] = (255,)*3
             else:                
-                bord_case[0] = palette_couleur().Noir_clair
-                          
+                bord_case[0] = palette_couleur().Noir_clair                          
             pygame.draw.rect(self.screen,palette_couleur().Noir_clair,rect_btn_ok,0,35)
             pygame.draw.rect(self.screen,bord_case[0],rect_btn_ok,1,35)
             draw_text_(contener= self.screen,text = "OK", x = rect_btn_ok.x + rect_btn_ok.w/2 - font(TNN,20,True).size("OK")[0]/2, 
@@ -277,14 +252,11 @@ if __name__ == "__main__":
     pygame.display.init()
     pygame.font.init()
     screen = pygame.display.set_mode((0,0),pygame.FULLSCREEN)
-    screen.fill((0,0,0))
+    screen.fill((106,110,255))
     draw_text_("Voici une demonstration des filedialog de SylverFiledialog",contener=screen,color=(255,255,255),center_multi_line=True)
     last_screen = screen.copy()
-    dialog = BoiteDialogPygame(400,200,screen)
+    dialog = BoiteDialogPygame(400,200,screen,1,True)
     rep = dialog.ask_yes_no("Boîte de dialogue pour oui ou non\nVous pouvez écrire sur plusieurs lignes en utilisant des '\\n'.",last_screen)
-    print(rep)
     rep = dialog.message("Boîte de dialogue permettant d'afficher un message, une information, ce que vous voulez :)", last_screen)
-    print(rep)
     rep = dialog.ask_yes_no_cancel("Boîte de dialogue pour oui, non ou annuler\nVous pouvez écrire sur plusieurs lignes en utilisant des '\\n'.",last_screen)
-    print(rep)
     dialog.message("Les boîtes de dialogue de message tentent de s'adapter lorsque le texte est trop long, tandis que les boîtes de dialogue posant des questions se contentent de réduire la taille du texte.\n Ainsi, il est recommandé de ne pas inclure trop de texte dans les boîtes de questions.",last_screen)
