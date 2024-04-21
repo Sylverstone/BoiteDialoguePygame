@@ -6,12 +6,12 @@ from Sylver_fonction_usuelle import *
 
 class BoiteDialogPygame:
     
-    def __init__(self,w : int = 400 ,h : int = 200 ,screen : pygame.Surface = None,fond_filedialong : palette_couleur  = palette_couleur().Gris_clair):
+    def __init__(self,w : int = 400 ,h : int = 200 ,screen : pygame.Surface = None,
+                 contour = 0, filtre_blanc = False):
         self.longueur = w
         self.largeur = h
         self.longueur_btn = w/5
         self.largeur_btn = h/5
-        self.fond_filedialong = fond_filedialong
         self.screen = screen
         self.icone_interrogation = pygame.transform.smoothscale(\
             pygame.image.load(os.path.join("Image","Icone_interrogation_filedialog.png"))
@@ -19,7 +19,8 @@ class BoiteDialogPygame:
         self.icone_exclamation = pygame.transform.smoothscale(\
             pygame.image.load(os.path.join("Image","mise-en-garde.png"))
             ,(25,25))
-        
+        self.contour = contour
+        self.filtre_blanc = filtre_blanc
         
     def ask_yes_no(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0)) -> bool:
         """Boite de dialogue permettant de posez une question fermer. Renvoie True pour oui, False pour non
@@ -33,6 +34,10 @@ class BoiteDialogPygame:
             bool: Reponse de l'utilisateur
         """
         self.screen.blit(dernier_ecran,(0,0))
+        if self.filtre_blanc != False:
+            surface_blanc_transparent = pygame.Surface((self.screen.get_width(), self.screen.get_height()),pygame.SRCALPHA)
+            surface_blanc_transparent.fill((255,255,255,100))
+            self.screen.blit(surface_blanc_transparent,(0,0))
         surface = pygame.Surface((self.longueur,self.largeur),pygame.SRCALPHA)
         longueur_surface, largeur_surface = surface.get_size()
         x_surface = self.screen.get_rect().w/2 - surface.get_width()/2
@@ -62,7 +67,8 @@ class BoiteDialogPygame:
             #creation logique fenetre
             surface.fill((0,0,0,0))
             pygame.draw.rect(surface,palette_couleur().Gris_clair,surface.get_rect(),0,35)
-            pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),1,35)
+            if self.contour != 0:
+                pygame.draw.rect(surface,palette_couleur().Noir,surface.get_rect(),self.contour,35)
             barre_noir.fill((0,0,0,0))
             pygame.draw.rect(barre_noir,palette_couleur().Noir,barre_noir.get_rect(),0,0,35,35,0,0)
             surface.blit(barre_noir,(0,0))
@@ -100,7 +106,7 @@ class BoiteDialogPygame:
             draw_text_(contener= self.screen,text = "NON", x = rect_btn_non.x + rect_btn_non.w/2 - font(TNN,20,True).size("NON")[0]/2, 
                       y = rect_btn_non.y + rect_btn_non.h/2 - font(TNN,20,True).size("NON")[1]/2, color=(255,)*3,
                       font = TNN, importer= True,size = 20)
-            pygame.display.update()
+            pygame.display.update(pygame.Rect(x_surface,y_surface,*surface.get_width()))
     
     def ask_yes_no_cancel(self,text : str ,dernier_ecran : pygame.Surface,color_text : tuple = (0,0,0)) -> bool:
         """Boite de dialogue permettant de poser une question fermé, Renvoie True pour oui, False pour non, None pour annuler
